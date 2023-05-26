@@ -10,4 +10,4 @@ The goal is to
   You can use ansible, python or go-lang to do so!
 
 
-Optionaly setup prometheus to scrape metrics and grafana to show them
+Optionaly setup prometheus to scrape metrics and grafana to show them (containers are ok!)
