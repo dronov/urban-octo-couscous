@@ -9,7 +9,7 @@ jobs:
       - name: Use path with golang
         run: export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
       - name: Check that executable is built
-        run: make build-x64
+        run: PATH=$PATH:/usr/local/go/bin:$GOPATH/bin make build-x64
   deploy:
     runs-on: self-hosted
     needs: [build]
