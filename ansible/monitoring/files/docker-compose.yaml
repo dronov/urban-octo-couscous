@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    network_mode: host
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus:/prometheus
+      - ./cfg/prometheus.yaml:/etc/prometheus/prometheus.yaml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    network_mode: host
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana:/var/lib/grafana
+      - ./cfg/cpu-stats-exporter.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
+      - ./cfg/cpu-stats-exporter.json:/etc/grafana/dashboards/dashboard.json
+      - ./cfg/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+
+volumes:
+  grafana: {}
+  prometheus: {}

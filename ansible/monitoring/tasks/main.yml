@@ -1,0 +1,75 @@
+---
+- name: Install Docker
+  become: true
+  apt:
+    name: docker.io
+    state: present
+
+- name: Check if {{ compose_path }} directory exists
+  stat:
+    path: "{{ compose_path }}"
+  register: cpu_stats_exporter_bin_dir
+
+- name: Remove old monitoring files
+  command: "rm -f {{ compose_path }}/docker-compose.yaml {{ compose_path }}/cpu-stats-exporter.json {{ compose_path }}/cpu-stats-exporter.yaml {{ compose_path }}/datasource.yaml {{ compose_path }}/prometheus.yaml"
+  ignore_errors: true
+
+- name: Install Docker Compose
+  become: true
+  apt: 
+    name: docker-compose
+    state: present
+
+- name: Add user to Docker group
+  user:
+    name: twtrp
+    groups: docker
+  become: true
+
+- name: Restart Docker daemon
+  service:
+    name: docker
+    state: restarted
+  become: true
+
+- name: Create {{ compose_path }} directory on server
+  file:
+    path: "{{ compose_path }}"
+    state: directory
+  when: not cpu_stats_exporter_bin_dir.stat.exists
+
+- name: Create /opt/monitoring/cfgdirectory on server
+  file:
+    path: "{{ compose_path }}cfg/"
+    state: directory
+  ignore_errors: true
+
+- name: Copy docker-compose.yaml
+  copy:
+    src: "{{ playbook_dir }}/monitoring/files/docker-compose.yaml"
+    dest: "{{ compose_path }}docker-compose.yaml"
+
+- name: Copy dashboard json
+  copy:
+    src: "{{ playbook_dir }}/monitoring/files/cpu-stats-exporter.json"
+    dest: "{{ compose_path }}cfg/cpu-stats-exporter.json"
+
+- name: Copy dashboard yaml
+  copy:
+    src: "{{ playbook_dir }}/monitoring/files/cpu-stats-exporter.yaml"
+    dest: "{{ compose_path }}cfg/cpu-stats-exporter.yaml"
+
+- name: Copy datasource file
+  copy:
+    src: "{{ playbook_dir }}/monitoring/files/datasource.yaml"
+    dest: "{{ compose_path }}cfg/datasource.yaml"
+
+- name: Copy prometheus yaml
+  copy:
+    src: "{{ playbook_dir }}/monitoring/files/prometheus.yaml"
+    dest: "{{ compose_path }}cfg/prometheus.yaml"
+
+- name: Start prometheus and grafana
+  command: docker-compose up -d
+  args:
+    chdir: "{{ compose_path }}"

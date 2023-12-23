@@ -22,3 +22,8 @@ go.work
 
 # out binary
 cpu-stats-exporter-*
+terraform/terraform.tfstate
+terraform/terraform.tfstate.*
+terraform/.terraform.lock.hcl
+terraform/.terraform
+terraform/.trunk

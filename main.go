@@ -1,9 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -19,9 +21,9 @@ var (
 			Help: "Free memory",
 		},
 	)
-	proc_count = prometheus.NewGauge(
+	processesCount = prometheus.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "proc_count",
+			Name: "processesCount",
 			Help: "Total count of running processes",
 		},
 	)
@@ -29,34 +31,61 @@ var (
 
 func init() {
 	prometheus.MustRegister(memFree)
-	prometheus.MustRegister(proc_count)
+	prometheus.MustRegister(processesCount)
 }
 
 func main() {
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt)
+
 	go collectMemInfo()
 	go collectProcStat()
 
 	http.Handle("/metrics", promhttp.Handler())
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		fmt.Printf("Failed to start HTTP server: %s\n", err.Error())
-		os.Exit(1)
+
+	server := &http.Server{Addr: ":8080"}
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	<-stopChan
+
+	log.Println("Shutting down gracefully...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal(err)
 	}
+
+	log.Println("Server gracefully stopped.")
 }
 
 func collectMemInfo() {
 	for {
 		memStat, err := ProcFS.Meminfo()
 		if err != nil {
-			fmt.Printf("Failed to retrieve memory stats: %s\n", err.Error())
+			log.Printf("Failed to retrieve memory stats: %s\n", err)
 			continue
 		}
-		memFree.Set(float64(memStat.MemFree))
+		memFree.Set(float64(*memStat.MemFree))
 
 		time.Sleep(10 * time.Second)
 	}
 }
 
 func collectProcStat() {
-	// Here goes the code to calculate current number of processes
+	for {
+		processes, err := ProcFS.AllProcs()
+		if err != nil {
+			log.Printf("Failed to retrieve processes: %s\n", err)
+			continue
+		}
+
+		processesCount.Set(float64(len(processes)))
+
+		time.Sleep(10 * time.Second)
+	}
 }

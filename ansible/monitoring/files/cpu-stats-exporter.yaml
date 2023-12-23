@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: simple_exporter
+    type: file
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: true

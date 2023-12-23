@@ -1,0 +1,127 @@
+---
+- name: Check if /opt/cpu-stats-exporter directory exists on server
+  stat:
+    path: /opt/cpu-stats-exporter
+  register: cpu_stats_exporter_dir
+
+- name: Create /opt/cpu-stats-exporter directory on server
+  file:
+    path: /opt/cpu-stats-exporter
+    state: directory
+    mode: "0755"
+  when: not cpu_stats_exporter_dir.stat.exists
+
+- name: Check if {{ project_path }} directory exists
+  stat:
+    path: "{{ project_path }}"
+  register: cpu_stats_exporter_bin_dir
+
+- name: Create {{ project_path }} directory on server
+  file:
+    path: "{{ project_path }}"
+    state: directory
+    mode: "0755"
+  when: not cpu_stats_exporter_bin_dir.stat.exists
+
+- name: Check if {{ build_path }} directory exists
+  stat:
+    path: "{{ build_path }}"
+  register: cpu_stats_exporter_build_dir
+
+- name: Create {{ build_path }} directory on server
+  file:
+    path: "{{ build_path }}"
+    state: directory
+    mode: "0755"
+  when: not cpu_stats_exporter_build_dir.stat.exists
+
+- name: Copy source code to the server
+  copy:
+    src: "{{ source_local_path }}/main.go"
+    dest: "{{ build_path }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: "0755"
+
+- name: Copy source code to the server
+  copy:
+    src: "{{ source_local_path }}/go.mod"
+    dest: "{{ build_path }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: "0755"
+
+- name: Copy source code to the server
+  copy:
+    src: "{{ source_local_path }}/go.sum"
+    dest: "{{ build_path }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: "0755"
+
+- name: Copy source code to the server
+  copy:
+    src: "{{ source_local_path }}/Makefile"
+    dest: "{{ build_path }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: "0755"
+
+- name: Check if cpu-stats-exporter.service is present
+  stat:
+    path: /etc/systemd/system/cpu-stats-exporter.service
+  register: cpu_stats_exporter_service
+
+- name: Stop the systemd service if present
+  systemd:
+    name: "{{ project_name }}"
+    state: stopped
+  become: yes
+  when: cpu_stats_exporter_service.stat.exists
+
+- name: Build the default target
+  make:
+    chdir: "{{ build_path }}"
+    target: build-x64
+  environment:
+    GOPATH: /root/go
+    PATH: "/usr/local/go/bin:/root/go/bin:{{ ansible_env.PATH }}"
+  become: yes
+
+- name: Run 'install' target as root
+  args:
+    chdir: "{{ build_path }}"
+  environment:
+    GOPATH: /root/go
+    PATH: "/usr/local/go/bin:/root/go/bin:{{ ansible_env.PATH }}"
+  make:
+    chdir: "{{ build_path }}"
+    target: install
+  become: yes
+
+- name: Create systemd service
+  template:
+    src: "{{ project_name }}.service.j2"
+    dest: /etc/systemd/system/{{ project_name }}.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: yes
+
+- name: Reload systemd
+  systemd:
+    name: "{{ project_name }}"
+    state: reloaded
+  become: yes
+
+- name: Enable the systemd service
+  systemd:
+    name: "{{ project_name }}"
+    state: started
+  become: yes
+
+- name: Start the systemd service
+  systemd:
+    name: "{{ project_name }}"
+    state: started
+  become: yes

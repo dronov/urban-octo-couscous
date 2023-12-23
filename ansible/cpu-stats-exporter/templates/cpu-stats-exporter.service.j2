@@ -1,0 +1,12 @@
+[Unit]
+Description={{ project_name }}
+After=network.target
+
+[Service]
+ExecStart={{ project_path }}/{{ binary_name }}
+Restart=always
+User={{ user }}
+Group={{ group }}
+
+[Install]
+WantedBy=multi-user.target
