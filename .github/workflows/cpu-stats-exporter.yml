@@ -1,0 +1,17 @@
+name: deploy cpu-stats-exporter
+run-name: ${{ github.actor }} is deploying cpu-stats-exporter 🚀
+on: [push]
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy to nodes
+        run: make build-x64
+  deploy:
+    runs-on: self-hosted
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy to nodes
+        run: ansible-playbook -i ansible/inventory -e hosts=nodes ansible/deploy.yml -u twtrp
