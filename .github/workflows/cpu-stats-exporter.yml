@@ -6,12 +6,16 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
-      - name: Deploy to nodes
+      - name: Use path with golang
+        run: export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+      - name: Check that executable is built
         run: make build-x64
   deploy:
     runs-on: self-hosted
     needs: [build]
     steps:
       - uses: actions/checkout@v2
+      - name: Use path with golang
+        run: export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
       - name: Deploy to nodes
         run: ansible-playbook -i ansible/inventory -e hosts=nodes ansible/deploy.yml -u twtrp
