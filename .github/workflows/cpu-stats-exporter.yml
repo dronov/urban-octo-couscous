@@ -2,17 +2,23 @@ name: deploy cpu-stats-exporter
 run-name: ${{ github.actor }} is deploying cpu-stats-exporter 🚀
 on: [push]
 jobs:
+  linter:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use path with golang
+      - name: Check that executable is built
+        run: PATH=$PATH:/usr/local/go/bin:$GOPATH/bin go fmt main.go
   build:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
       - name: Use path with golang
-        run: export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
       - name: Check that executable is built
         run: PATH=$PATH:/usr/local/go/bin:$GOPATH/bin make build-x64
   deploy:
     runs-on: self-hosted
-    needs: [build]
+    needs: [build, linter]
     steps:
       - uses: actions/checkout@v2
       - name: Use path with golang
