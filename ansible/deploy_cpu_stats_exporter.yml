@@ -3,4 +3,4 @@
   become: yes
 
   roles:
-    - roles/monitoring
+    - roles/cpu-stats-exporter

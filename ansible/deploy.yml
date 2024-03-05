@@ -1,6 +1,0 @@
----
-- hosts: "{{ hosts }}"
-  become: yes
-
-  roles:
-    - cpu-stats-exporter

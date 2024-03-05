@@ -1,6 +1,6 @@
 ---
-- hosts: "{{ hosts }}"
+- hosts: "{{ hostnames }}"
   become: yes
 
   roles:
-    - dependencies-cpu-stats-exporter
+    - roles/dependencies-cpu-stats-exporter

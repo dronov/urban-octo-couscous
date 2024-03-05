@@ -1,4 +1,0 @@
-user: twtrp
-group: twtrp
-go_version: 1.20.1
-compose_path: /opt/monitoring/

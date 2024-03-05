@@ -46,27 +46,27 @@
 
 - name: Copy docker-compose.yaml
   copy:
-    src: "{{ playbook_dir }}/monitoring/files/docker-compose.yaml"
+    src: "{{ playbook_dir }}/roles/monitoring/files/docker-compose.yaml"
     dest: "{{ compose_path }}docker-compose.yaml"
 
 - name: Copy dashboard json
   copy:
-    src: "{{ playbook_dir }}/monitoring/files/cpu-stats-exporter.json"
+    src: "{{ playbook_dir }}/roles/monitoring/files/cpu-stats-exporter.json"
     dest: "{{ compose_path }}cfg/cpu-stats-exporter.json"
 
 - name: Copy dashboard yaml
   copy:
-    src: "{{ playbook_dir }}/monitoring/files/cpu-stats-exporter.yaml"
+    src: "{{ playbook_dir }}/roles/monitoring/files/cpu-stats-exporter.yaml"
     dest: "{{ compose_path }}cfg/cpu-stats-exporter.yaml"
 
 - name: Copy datasource file
   copy:
-    src: "{{ playbook_dir }}/monitoring/files/datasource.yaml"
+    src: "{{ playbook_dir }}/roles/monitoring/files/datasource.yaml"
     dest: "{{ compose_path }}cfg/datasource.yaml"
 
 - name: Copy prometheus yaml
   copy:
-    src: "{{ playbook_dir }}/monitoring/files/prometheus.yaml"
+    src: "{{ playbook_dir }}/roles/monitoring/files/prometheus.yaml"
     dest: "{{ compose_path }}cfg/prometheus.yaml"
 
 - name: Start prometheus and grafana
